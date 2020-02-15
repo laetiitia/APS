@@ -19,27 +19,27 @@ let rec print_expr e =
   | AstTrue -> Printf.printf"true"
   | AstFalse -> Printf.printf"false"
   | AstIf(cond, body, alter) -> (
-      Printf.printf"( ";
+      Printf.printf"(if ";
       print_expr cond;
-      Printf.printf" -> ";
+      Printf.printf" then ";
       print_expr body;
-      Printf.printf" ; ";
+      Printf.printf" else ";
       print_expr alter;
       Printf.printf" )"
     )
   | AstAbstraction(args, e) -> (
       Printf.printf"Abs([ ";
       print_args args;
-      Printf.printf"]";
-      print_exprs e;
+      Printf.printf"] = ";
+      print_expr e;
       Printf.printf")"
     )
   | AstApply(e, es) -> (
-      Printf.printf"( ";
+      Printf.printf"Apply( ";
       print_expr e;
-      Printf.printf"([";
+      Printf.printf"[";
       print_exprs es;
-      Printf.printf"]))"
+      Printf.printf"])"
     )
 	and print_exprs es =
 	  match es with
@@ -50,8 +50,42 @@ let rec print_expr e =
 			print_char ',';
 			print_exprs es
     )
-  and print_arg ident type =  
-		;;
+  and print_type t =
+    match t with
+      AstTypeInt -> Printf.printf "int"
+    | AstTypeBool -> Printf.printf "bool"
+    | AstTypeFun(ts, t) -> (
+        Printf.printf"(";
+        print_types ts;
+        Printf.printf"->";
+        print_type t;
+        Printf.printf")";
+      )
+  and print_types ts =
+    match ts with
+      AstType t -> print_type t
+    | AstTypes (t, ts) -> (
+        print_type t;
+        Printf.printf" * ";
+        print_types ts
+      )
+  and print_arg a =
+    match a with
+      (ident, t) -> (
+        Printf.printf"arg(%s : " ident;
+        print_type t;
+        Printf.printf")"
+      )
+  and print_args args =
+    match args with
+      AstArg a -> print_arg a
+    | AstArgs(arg , args) -> (
+        print_arg arg;
+        Printf.printf " , ";
+        print_args args
+      )
+;;
+
 let fname = Sys.argv.(1) in
 let ic = open_in fname in
 	try
