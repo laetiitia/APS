@@ -23,7 +23,7 @@ open Ast
 %type <Ast.args> args
 
 
-%start expr             /* the entry point */
+%start prog             /* the entry point */
 
 %%
 prog:
@@ -41,9 +41,9 @@ stat:
 ;
 
 dec:
-		CONST IDENT type_ expr                      { AstConst($2, $3, $4) }
-		| FUN IDENT type_ LCRO args RCRO expr       { AstFun($2, $3, $5, $7) }
-		| FUN REC IDENT type_ LCRO args RCRO expr   { AstFunRec($3, $4, $6, $8) }
+		CONST IDENT type_ expr                      { AstConst(AstId($2), $3, $4) }
+		| FUN IDENT type_ LCRO args RCRO expr       { AstFun(AstId($2), $3, $5, $7) }
+		| FUN REC IDENT type_ LCRO args RCRO expr   { AstFunRec(AstId($3), $4, $6, $8) }
 ;
 
 type_:
@@ -58,7 +58,7 @@ types:
 ;
 
 arg:
-		IDENT DPNT type_    { ($1, $3) }  /*NO NAME*/
+		IDENT DPNT type_    { (AstId($1), $3) }  /*NO NAME*/
 ;
 
 args:

@@ -29,5 +29,5 @@ type token =
   | ETOILE
   | FLECHE
 
-val expr :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.expr
+val prog :
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.prog

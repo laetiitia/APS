@@ -1,0 +1,1 @@
+[ FUN REC x int [ y : int , z : bool ] (add 4 6); ECHO x ]

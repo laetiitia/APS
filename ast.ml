@@ -19,16 +19,16 @@ and cmds =
   | AstDec of dec * cmds
   | AstStats of stat *cmds
 
-and arg = (string * type_)
+and arg = (expr * type_)
 
 and args =
     AstArg of arg
   | AstArgs of arg * args
 
 and dec =
-    AstConst of string * type_ * expr
-  | AstFun of string * type_ * args * expr
-  | AstFunRec of string * type_ * args * expr
+    AstConst of expr * type_ * expr
+  | AstFun of expr * type_ * args * expr
+  | AstFunRec of expr * type_ * args * expr
 
 and stat =
   AstEcho of expr
