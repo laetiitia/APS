@@ -76,9 +76,9 @@ let rec print_expr e =
   and print_arg a =
     match a with
       (ident, t) -> (
-        Printf.printf"arg( " ;
+        Printf.printf"arg(" ;
         print_expr ident;
-        Printf.printf " , ";
+        Printf.printf ",";
         print_type t;
         Printf.printf")"
       )
@@ -87,7 +87,7 @@ let rec print_expr e =
       AstArg a -> print_arg a
     | AstArgs(arg , args) -> (
         print_arg arg;
-        Printf.printf " , ";
+        Printf.printf ",";
         print_args args
       )
     and print_stat stat =
