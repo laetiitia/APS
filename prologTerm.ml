@@ -19,23 +19,23 @@ let rec print_expr e =
   | AstTrue -> Printf.printf"true"
   | AstFalse -> Printf.printf"false"
   | AstIf(cond, body, alter) -> (
-      Printf.printf"if([";
+      Printf.printf"if(";
       print_expr cond;
-      Printf.printf"->";
+      Printf.printf",";
       print_expr body;
-      Printf.printf";";
+      Printf.printf",";
       print_expr alter;
       Printf.printf")"
     )
   | AstAbstraction(args, e) -> (
-      Printf.printf"Abs([ ";
+      Printf.printf"abst([ ";
       print_args args;
-      Printf.printf"] = ";
+      Printf.printf"],";
       print_expr e;
       Printf.printf")"
     )
   | AstApply(e, es) -> (
-      Printf.printf"Apply( ";
+      Printf.printf"apply( ";
       print_expr e;
       Printf.printf"[";
       print_exprs es;
@@ -55,9 +55,9 @@ let rec print_expr e =
       AstTypeInt -> Printf.printf "int"
     | AstTypeBool -> Printf.printf "bool"
     | AstTypeFun(ts, t) -> (
-        Printf.printf"typefun(";
+        Printf.printf"typefun([";
         print_types ts;
-        Printf.printf"->";
+        Printf.printf"],";
         print_type t;
         Printf.printf")";
       )
@@ -70,7 +70,7 @@ let rec print_expr e =
       )
     | AstTypes (t, ts) -> (
         print_type t;
-        Printf.printf" * ";
+        Printf.printf",";
         print_types ts
       )
   and print_arg a =
@@ -93,7 +93,7 @@ let rec print_expr e =
     and print_stat stat =
       match stat with
         AstEcho e -> (
-          Printf.printf "stat(";
+          Printf.printf "echo(";
           print_expr e; 
           Printf.printf ")"
         )
@@ -107,7 +107,7 @@ let rec print_expr e =
           Printf.printf ",";
           print_expr e;
           Printf.printf ")"
-        )   (**A FAIRE *)
+        )   
         | AstFun (id, t, args, e ) -> (
           Printf.printf "fun(";
           print_expr id;
@@ -132,7 +132,10 @@ let rec print_expr e =
         ) 
     and print_cmds cmd =
       match cmd with
-        AstStat (s) -> print_stat s
+        AstStat (s) -> (
+            Printf.printf "stat(";
+            print_stat s)
+            Printf.printf ")"
         | AstDec (d, cmds) -> (
             Printf.printf "dec(";
             print_dec d;
@@ -141,7 +144,9 @@ let rec print_expr e =
             print_cmds cmds
           )
         | AstStats (s, cmds) -> (
+            Printf.printf "stat(";
             print_stat s;
+            Printf.printf ")"
             Printf.printf ",";
             print_cmds cmds
         )

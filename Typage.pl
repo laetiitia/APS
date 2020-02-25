@@ -5,48 +5,75 @@ main_stdin :-
     nl,
     exitCode(R).
 
+/* CHECK*/
 typeCheck(P,ok) :- typeProg(P).
 typeCheck(_,ko).
 
+
+/* EXIT */
 exitCode(ok) :- halt(0).
 exitCode(_) :- halt(1).
 exitCode(_).
 
+
+/* PROG */
+typeProg(prog(X)):- typeCmds(_,X,void).
+
+
+/* CMDS */
+typeCmds(_,[stat(X)],void):- typeStat(_,X,void).
+typeCmds(_,[stat(H)|CMDS],void):- typeStat(_,H,void),typeCmds(_,CMDS,void).
+typeCmds(_,[dec(H)|CMDS],void):- typeDec(_,H,void),typeCmds(_,CMDS,void).
+
+
+/* STAT */
+typeStat(_,echo(E),void):- typeExpr(_,E,int). /* /!\ RETURN INT */
+
+
+/* DEC */
+typeDec(_,const(X,T,E),_):- typeExpr(_,X,_), typeType(T), typeExpr(_,E,T).
+typeDec(_,fun(X,T,A,E),_):- typeExpr(_,X,_), typeType(T), typeArg(_,A,_), typeExpr(_,E,_).
+typeDec(_,funrec(X,T,A,E),_):- typeExpr(_,X,_), typeType(T), typeArg(_,A,_), typeExpr(_,E,_).
+
+
+/* ARG */
+typeArg(_,[arg(X,T)],_):- typeExpr(_,X,string),typeType(T).
+typeArg(_,[arg(X,T)|A],_):- typeExpr(_,X,string),typeType(T),typeArg(_,A,_).
+ 
+
+/* TYPE */
 typeType(bool).
 typeType(int).
-typeType(string).
+/*
+typeType(_,typefun([X],type(Y)),_):- typeTypes(X), typeType(Y).
+*/
 
+/*TYPES*/
+
+
+
+/* EXPR */
 typeExpr(_, true, bool).
 typeExpr(_, false, bool).
 typeExpr(_, num(_),int).
 typeExpr(_,var(_),string).
+/* OPERATIONS BOOLEAN */
+typeExpr(_, not(E), bool) :- typeExpr(_, E, bool).
+typeExpr(_, and(E1, E2), bool) :- typeExpr(_,E1,bool), typeExpr(_,E2,bool).
+typeExpr(_, or(E1, E2), bool) :- typeExpr(_,E1,bool), typeExpr(_,E2,bool).
+typeExpr(_, eq(E1, E2), bool) :- typeExpr(_,E1,bool), typeExpr(_,E2,bool).
+typeExpr(_, lt(E1, E2), bool) :- typeExpr(_,E1,int), typeExpr(_,E2,int).
+/* OPERATIONS INT */
+typeExpr(_, add(E1, E2), int) :- typeExpr(_,E1,int), typeExpr(_,E2,int).
+typeExpr(_, sub(E1, E2), int) :- typeExpr(_,E1,int), typeExpr(_,E2,int).
+typeExpr(_, mult(E1, E2), int) :- typeExpr(_,E1,int), typeExpr(_,E2,int).
+typeExpr(_, div(E1, E2), int) :- typeExpr(_,E1,int), typeExpr(_,E2,int).
 
-typeExpr(_, not(X), bool) :- typeExpr(_, X, bool).
-typeExpr(_, and( X, Y), bool) :- typeExpr(_,X,bool),typeExpr(_,Y,bool).
-typeExpr(_, or(X,Y), bool) :- typeExpr(_,X,bool),typeExpr(_,Y,bool).
-typeExpr(_, eq(X,Y), bool):- typeExpr(_,X,Z),typeExpr(_,Y,Z).
-typeExpr(_, lt(X,Y), bool):- typeExpr(_,X,int),typeExpr(_,Y,int).
-typeExpr(_, add(X,Y), int):- typeExpr(_,X,int),typeExpr(_,Y,int).
-typeExpr(_, sub(X,Y), int):- typeExpr(_,X,int),typeExpr(_,Y,int).
-typeExpr(_, mult(X,Y), int):- typeExpr(_,X,int),typeExpr(_,Y,int).
-typeExpr(_, div(X,Y), int):- typeExpr(_,X,int),typeExpr(_,Y,int).
+typeExpr(_, if(COND,BODY,ALT),T) :- typeExpr(_, COND, bool), typeExpr(_, BODY, T), typeExpr(_, ALT, T).
+%%typeExpr(_,abst(A, E), T) :- .
+%%typeExpr(_,apply(E, ES), T) :- typeExpr(_,E,_).
 
-
-typeProg(prog(X)):- typeCmds(_,X,void).
-
-
-typeCmds(_,[stat(X)],void):- typeStat(_,X,void).
-typeCmds(_,[stat(H)|T],void):- typeStat(_,H,void),typeCmds(_,T,void).
-typeCmds(_,[dec(H)|T],void):- typeDec(_,H,void),typeCmds(_,T,void).
-
-typeStat(_,X,void):- typeExpr(_,X,_).
-typeDec(_,const(X,Y,Z),_):- typeExpr(_,X,_),typeType(Y),typeExpr(_,Z,_).
-typeDec(_,fun(X,Y,Z,P),_):- typeExpr(_,X,_),typeType(Y),typeArg(_,Z,_),typeExpr(_,P,_).
-typeDec(_,funrec(X,Y,Z,P),_):- typeExpr(_,X,_),typeType(Y),typeArg(_,Z,_),typeExpr(_,P,_).
-
-
-typeArg(_,[arg(X,Y)],_):- typeExpr(_,X,string),typeType(Y).
-typeArg(_,[arg(X,Y)|Z],_):- typeExpr(_,X,string),typeType(Y),typeArg(_,Z,_).
+/* EXPRS*/
 
 
 /* Environnement: ident -> type */
