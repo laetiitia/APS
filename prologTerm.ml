@@ -63,11 +63,7 @@ let rec print_expr e =
       )
   and print_types ts =
     match ts with
-      AstType t -> (
-        Printf.printf "type(";
-        print_type t;
-        Printf.printf ")"
-      )
+      AstType t -> print_type t;
     | AstTypes (t, ts) -> (
         print_type t;
         Printf.printf",";
@@ -134,8 +130,9 @@ let rec print_expr e =
       match cmd with
         AstStat (s) -> (
             Printf.printf "stat(";
-            print_stat s)
+            print_stat s;
             Printf.printf ")"
+        )
         | AstDec (d, cmds) -> (
             Printf.printf "dec(";
             print_dec d;
@@ -146,7 +143,7 @@ let rec print_expr e =
         | AstStats (s, cmds) -> (
             Printf.printf "stat(";
             print_stat s;
-            Printf.printf ")"
+            Printf.printf ")";
             Printf.printf ",";
             print_cmds cmds
         )
