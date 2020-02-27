@@ -42,8 +42,8 @@ typeDec(G,funrec(X,T,A,E),[(X,typefun(TS,T))|G]):-
 
 
 /* Verify couple args-types*/
-getTypes([(_,T)],[T]).
-getTypes([(_,T)|A], [T|TT]) :- getTypes(A,TT).
+getTypes([arg(_,T)],[T]).
+getTypes([arg(_,T)|A], [T|TT]) :- getTypes(A,TT).
 
 /* EXPR */
 typeExpr(_, true, bool).
@@ -82,7 +82,7 @@ append([], X, X).
 append([A|X], Y, [A|R]) :- append(X, Y, R).
 
 %% Check Environment
-check((X,_),[arg(X,_)|_]). %%Trouvé
+check((X,T),[arg(X,T)|_]). %%Trouvé
 check(X,[_|GS]) :- check(X,GS).
 
 

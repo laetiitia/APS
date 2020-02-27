@@ -1,1 +1,1 @@
-[FUN bob int [ x : int ] x ; ECHO 4]
+[FUN REC bob int [ x : int ] (and x 4) ; ECHO 4]
