@@ -72,7 +72,7 @@ let rec print_expr e =
   and print_arg a =
     match a with
       (ident, t) -> (
-        Printf.printf"arg(" ;
+        Printf.printf"(" ;
         print_expr ident;
         Printf.printf ",";
         print_type t;
