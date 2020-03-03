@@ -1,1 +1,1 @@
-[FUN bob bool [ x : bool] (and x true) ; ECHO 4]
+[FUN f (int -> bool) [ y : bool] [x:int] (if (lt x 0) y false) ; ECHO 4]

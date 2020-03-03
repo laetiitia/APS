@@ -1,0 +1,1 @@
+[FUN REC bob bool [ x : int, y : bool] (if (lt x 0) y false) ; ECHO 4]

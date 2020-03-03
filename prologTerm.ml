@@ -28,7 +28,7 @@ let rec print_expr e =
       Printf.printf")"
     )
   | AstAbstraction(args, e) -> (
-      Printf.printf"abst([ ";
+      Printf.printf"abst([";
       print_args args;
       Printf.printf"],";
       print_expr e;

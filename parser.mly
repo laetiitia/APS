@@ -47,7 +47,7 @@ dec:
 ;
 
 type_:
-		INT   { AstTypeInt }
+	INT   { AstTypeInt }
 	| BOOL  { AstTypeBool }
 	| LPAR types FLECHE type_ RPAR  { AstTypeFun($2, $4) }
 ;

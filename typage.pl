@@ -6,13 +6,11 @@ main_stdin :-
     exitCode(R).
 
 /* CHECK*/
-
 typeCheck(P,ok) :- typeProg(P).
 typeCheck(_,ko).
 
 
 /* EXIT */
-
 exitCode(ok) :- halt(0).
 exitCode(_) :- halt(1).
 
@@ -41,7 +39,7 @@ typeDec(G,funrec(X,T,A,E),[(X,typefun(TS,T))|G]):-
 
 
 
-/* Verify couple args-types*/
+/* Verify type of args*/
 getTypes([(_,T)],[T]).
 getTypes([(_,T)|A], [T|TT]) :- getTypes(A,TT).
 
@@ -49,7 +47,6 @@ getTypes([(_,T)|A], [T|TT]) :- getTypes(A,TT).
 typeExpr(_, true, bool).
 typeExpr(_, false, bool).
 typeExpr(_, num(_), int).
-%typeExpr(G,var(X),T) :- check((X,T),G).
 /* OPERATIONS BOOLEAN */
 typeExpr(G, not(E), bool) :- typeExpr(G, E, bool).
 typeExpr(G, and(E1, E2), bool) :- typeExpr(G,E1,bool), typeExpr(G,E2,bool).
@@ -61,26 +58,29 @@ typeExpr(G, add(E1, E2), int) :- typeExpr(G,E1,int), typeExpr(G,E2,int).
 typeExpr(G, sub(E1, E2), int) :- typeExpr(G,E1,int), typeExpr(G,E2,int).
 typeExpr(G, mult(E1, E2), int) :- typeExpr(G,E1,int), typeExpr(G,E2,int).
 typeExpr(G, div(E1, E2), int) :- typeExpr(G,E1,int), typeExpr(G,E2,int).
-
+/* ABS */
+typeExpr(G, abst(A, E), typefun(TS,T)) :- getTypes(A,TS), append(G,A,GG), typeExpr(GG,E,T).
+/* APP */
+typeExpr(G, apply(var(E), ES),T) :- checkExprs(G, ES,TS), assoc( E,G,typefun(TS,T)).
+typeExpr(G, apply(E, ES),T) :- checkExprs(G, ES,TS), append(G,typefun(TS,T),GG), typeExpr(GG,E,T).
+/* EXPR SUITE */
 typeExpr(G, if(COND,BODY,ALT),T) :- typeExpr(G, COND, bool), typeExpr(G, BODY, T), typeExpr(G, ALT, T).
-typeExpr(G,abst(A, E), typefun(TS,T)) :- getTypes(A,TS), append(G,A,GG), typeExpr(GG,E,T).
-%typeExpr(G,apply(E, ES),_) :- typeExpr(G,E,_), typeExprs(G,ES,_).
-typeExpr(G,X,T) :- check((X,T),G).
+typeExpr(G,X,T) :- sym((X,T),G).
 
 
 /* Environnement: ident -> type */
-
 %% Assoc
-
 assoc(K, [(K,V)|_], V).
 assoc(K, [_| KVs], V) :- assoc(K, KVs, V). 
 
-
 %% Append
-
 append([], X, X).
 append([A|X], Y, [A|R]) :- append(X, Y, R).
 
 %% Check Environment
-check((X,T),[(X,T)|_]). %%Trouvé
-check(X,[_|GS]) :- check(X,GS).
+sym((X,T),[(X,T)|_]). %%Trouvé
+sym(X,[_|GS]) :- sym(X,GS).
+
+%% Check Expressions of the APP
+checkExprs(_,[],[]).
+checkExprs(G,[E|ES], [TE|TES]) :- typeExpr(G,E,TE), checkExprs(G, ES, TES).
