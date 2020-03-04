@@ -272,7 +272,7 @@ let yyact = [|
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 50 "parser.mly"
-        ( AstTypeInt )
+       ( AstTypeInt )
 # 277 "parser.ml"
                : Ast.type_))
 ; (fun __caml_parser_env ->

@@ -35,9 +35,9 @@ let rec print_expr e =
       Printf.printf")"
     )
   | AstApply(e, es) -> (
-      Printf.printf"apply( ";
+      Printf.printf"apply(";
       print_expr e;
-      Printf.printf"[";
+      Printf.printf",[";
       print_exprs es;
       Printf.printf"])"
     )
