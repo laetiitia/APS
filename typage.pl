@@ -67,7 +67,6 @@ typeExpr(G, apply(E, ES),T) :- typeExpr(G, E, typefun(TS,T)), checkExprs(G, ES,T
 typeExpr(G, if(COND,BODY,ALT),T) :- typeExpr(G, COND, bool), typeExpr(G, BODY, T), typeExpr(G, ALT, T).
 
 
-
 /* Environnement: ident -> type */
 %% Append
 append([], X, X).
