@@ -1,1 +1,5 @@
+[CONST a int 3;
+FUN f int [x:int] [var:int] (add var 3);
+ECHO (f a)]
+
 [ECHO [var : int , var2 : int] (add var var2) ]
