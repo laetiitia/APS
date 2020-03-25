@@ -62,6 +62,7 @@ let rec eval_expr env e =
                           and liste_exprs = eval_exprs exprs env [] in 
                               (match eval_e with 
                                 | InF(expr, args, g) -> let newG = List.append (List.map2 (fun x y -> (x,y)) args liste_exprs) g in eval_expr newG expr
+                                | InFR(id, InF(expr, args, g))-> let newG = List.append (List.map2 (fun x y -> (x,y)) args liste_exprs) g in eval_expr  (( id ,InFR(id, InF(expr, args, g)))::newG) expr
                                 | _ -> failwith "cannot be apply")
 and eval_exprs exprs env acc =
   match exprs with 
