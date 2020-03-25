@@ -1,8 +1,8 @@
 open Ast
 
 type valeurs = InN of int 
-    | InF of expr * AstId list * (AstId * valeurs) list 
-    | InFR of AstId * valeurs
+    | InF of expr * string list * (string * valeurs) list 
+    | InFR of string * valeurs
 ;;
 
 (* FONCTIONS UTILES *)
@@ -11,6 +11,13 @@ let eval_int v =
   | InN(x) -> x
   | _ -> failwith "not in N"
 ;;
+
+
+let get_string ast =
+  match ast with 
+  | AstId(id) -> id
+  | _ -> failwith "not an ident" 
+
 
 
 let eval_oprim op e1 e2 =
@@ -32,16 +39,11 @@ let eval_opUnary op e =
   | _ -> failwith "not an opUnary"
 ;;
 
-let rec eval_args args acc =
+let rec eval_args args =
   match args with 
-  | [] -> acc
-  | (id,t)::suite -> eval_args suite id::acc
+  | AstArg(e,t) -> (get_string e)::[]
+  | AstArgs((e,t),suite) -> (get_string e)::(eval_args suite)
 ;;
-
-let rec eval_exprs exprs env acc =
-  match exprs with 
-  | [] -> acc
-  | e::es -> (eval_expr env e)::(eval_exprs es acc)
 
 
 let rec eval_expr env e =
@@ -49,49 +51,58 @@ let rec eval_expr env e =
   | AstNum(x) -> InN(x)
   | AstTrue -> InN(1)
   | AstFalse -> InN(0)
-  | AstId(id) -> List.assoc e env 
+  | AstId(id) -> List.assoc id env 
   | AstPrim(op, l) -> eval_oprim (string_of_oprim op) (eval_expr env (List.hd l)) (eval_expr env (List.nth l 1))
   | AstUnary(op, e) -> eval_opUnary (string_of_opUnary op) (eval_expr env e)
-  | AstIf(cond, body, alt) -> if (eval_expr env cond) == InN(1) then (eval_expr env body) else (eval_expr env alt)
-  | AstAbstaction(args, e) -> InF(e, (eval_args args []), env)
-  | AstApply(e, exprs) -> let (expr, listId, env2) = eval_expr env e in let l = eval_exprs env exprs [] in 
-                            let newG = env2 in List.iter2 (fun x y -> (x,y)::newG) listId l;
-                            eval_expr newG expr
-  | _ -> failwith "not an Expression"
+  | AstIf(cond, body, alt) -> if (eval_int (eval_expr env cond)) == 1 
+                              then (eval_expr env body) 
+                              else (eval_expr env alt)
+  | AstAbstraction(args, e) -> InF(e, (eval_args args), env)
+  | AstApply(e, exprs) -> let eval_e = (eval_expr env e) 
+                          and liste_exprs = eval_exprs exprs env [] in 
+                              (match eval_e with 
+                                | InF(expr, args, g) -> let newG = List.append (List.map2 (fun x y -> (x,y)) args liste_exprs) g in eval_expr newG expr
+                                | _ -> failwith "cannot be apply")
+and eval_exprs exprs env acc =
+  match exprs with 
+  | [] -> acc
+  | e::es -> (eval_expr env e)::(eval_exprs es env acc)
 ;;
+
+(*
+	|InF(body,params,env1) -> let closure_env = (List.map2 (fun x y -> (x,y)) params args_list)@env1 in eval_expr closure_env body
+	|InFR(f,InF(body,params,env1)) -> let closure_env =
+				f,List.assoc f env)::(List.map2 (fun x y -> (x,y)) params args_list)@env1 in
+								eval_expr closure_env body
+	*)
 
 let eval_stat env stat =
   match stat with
   | AstEcho(e) -> Printf.printf "%d " (eval_int (eval_expr env e))
-  | _ -> failwith "not an AstStat"
 ;; 
 
 let rec eval_dec env dec =
   match dec with
-  | AstConst(e1, t, e2) -> (e1,(eval_expr env e2))::env
-  (*| AstFun(e1, t, a, e2) -> let newEnv =     in eval_expr newEnv e2
-  | AstFunRec(e1, t, a, e2) -> *)
+  | AstConst(id, t, expr) -> ((get_string id), (eval_expr env expr))::env
+  | AstFun(id, t, args, expr) -> ((get_string id), InF(expr, eval_args args, env))::env 
+  | AstFunRec(id, t, args, expr) -> (get_string id, InFR(get_string id, InF(expr, eval_args args, env)) )::env
   | _ -> failwith "not an AstDec"
 ;;
 
 let rec eval_cmds env cmd =
   match cmd with
-  | AstStat(x) -> eval_stat env x
-  | AstDec(x , y) -> let newEnv = eval_dec env x in eval_cmds newEnv y
-  | AstStats (x , y) -> eval_stat env x ; eval_cmds env y 
-  | _ -> failwith "not a commande"
+  | AstStat(stat) -> eval_stat env stat
+  | AstDec(dec, cmd) -> let newEnv = eval_dec env dec in eval_cmds newEnv cmd
+  | AstStats (stat, cmd) -> eval_stat env stat ; eval_cmds env cmd 
 ;;
 
 let eval_prog p =
   match p with
-  | AstProg(x) -> eval_cmds [] x
-  | _ -> failwith "not a program"
+  | AstProg(prog) -> eval_cmds [] prog
 ;;
 
 
-  (**           Gestion Env              **)
-(*let find env id =*)
-
+(*  Lecture du fichier .aps *)
 
 let fname = Sys.argv.(1) in
   let ic = open_in fname in

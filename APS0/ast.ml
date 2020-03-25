@@ -66,10 +66,13 @@ let oprim_of_string oprim = match oprim with
 	| "or" -> Or
 	| "eq" -> Eq
   | "lt" -> Lt
+  | _ -> failwith "not a oprim"
 
 (* UNARY OPERATION*)
 let string_of_opUnary op = match op with
-  Not -> "not"
+   Not -> "not"
 
 let opUnary_of_string op = match op with
-  "not" -> Not
+   "not" -> Not
+  | _ -> failwith "not a oprim"
+
