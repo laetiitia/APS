@@ -1,20 +1,21 @@
 open Ast
 
-type valeurs = inN of int (* N *)
-    | inF of expr * string list * (string * valeurs) list 
-    | inFR of string * valeurs
+type valeurs = InN of int 
+    | InF of expr * string list * (string * valeurs) list 
+    | InFR of string * valeurs
+
 
 (* FONCTIONS UTILES *)
 let eval_oprim op e1 e2 =
   match op with
-  | "add" -> e1 + e2
-  | "mul" -> e1 * e2
-	| "sub" -> e1 - e2
-	| "div" -> if (e2 == 0) then failwith "can't divide with 0" else e1/e2
-	| "and" -> if (e1 == 0) then 0 else e2 
-	| "or" -> if (e1 == 1) then 1 else e2
-	| "eq" -> if (e1 == e2) then 1 else 0
-  | "lt" -> if (e1 < e2) then 1 else 0
+  | "add" -> (eval_int e1) + (eval_int e2)
+  | "mul" -> (eval_int e1) * (eval_int e2)
+	| "sub" -> (eval_int e1) - (eval_int e2)
+	| "div" -> if ((eval_int e2) == 0) then failwith "can't divide with 0" else (eval_int e1)/(eval_int e2)
+	| "and" -> if ((eval_int e1) == 0) then 0 else (eval_int e2) 
+	| "or" -> if ((eval_int e1) == 1) then 1 else (eval_int e2)
+	| "eq" -> if ((eval_int e1) == (eval_int e2)) then 1 else 0
+  | "lt" -> if ((eval_int e1) < (eval_int e2)) then 1 else 0
   | _ -> failwith "not an oprim"
 
 let eval_opUnary op e =
@@ -25,15 +26,15 @@ let eval_opUnary op e =
 
 let eval_int v =
   match v with
-  | inN(x) -> x
+  | InN(x) -> x
   | _ -> failwith "not in N"
 
 let eval_expr env e =
   match e with
-  | AstNum(x) -> inN(x)
-  | AstTrue -> inN(1)
-  | AstFalse -> inN(0)
-  | AstId(id) -> List.assoc id env
+  | AstNum(x) -> InN(x)
+  | AstTrue -> InN(1)
+  | AstFalse -> InN(0)
+  | AstId(id) -> if mem (id,_) env then assoc id env else id
   | AstPrim(op l) -> eval_oprim op (eval_expr (list.hd l)) (eval_expr (list.nth l 1))
   | AstUnary(op e) -> eval_opUnary op (eval_expr e)
   | AstIf(cond, body, alt) -> if (eval_expr cond) == 1 then (eval_expr body) else (eval_expr alt)
@@ -49,7 +50,7 @@ let eval_prog p =
 let eval_cmds env cmd =
   match cmd with
   | AstStat(x) -> eval_stat env x
-  | AstDec( x , y) -> let newEnv = eval_dec env x in eval_cmds y newEnv
+  | AstDec( x , y) -> let newEnv = eval_dec env x in eval_cmds newEnv y
   | AstStats ( x , y) -> eval_stat env x ; eval_cmds y env 
   | _ -> failwith "not a commande"
 
@@ -62,6 +63,21 @@ let eval_dec env dec =
 
 let eval_stat env stat =
   match stat with
-  | AstEcho(e) -> eval_expr env e
+  | AstEcho(e) -> Printf.printf "%d " (eval_expr env e)
   | _ -> failwith "not an AstStat"
 
+
+  (**           Gestion Env              **)
+let find env id =
+
+
+
+let fname = Sys.argv.(1) in
+let ic = open_in fname in
+	try
+   let lexbuf = Lexing.from_channel ic in
+   let p = Parser.prog Lexer.token lexbuf in
+	   eval_prog p;
+	   print_char '\n'
+  with Lexer.Eof ->
+	exit 0
