@@ -62,11 +62,7 @@ let rec eval_expr env e =
                           and liste_exprs = eval_exprs exprs env [] in 
                               (match eval_e with 
                                 | InF(expr, args, g) -> let newG = List.append (List.map2 (fun x y -> (x,y)) args liste_exprs) g in eval_expr newG expr
-<<<<<<< HEAD
-                                | InFR(id, InF(expr,args,g)) -> let newG = let newG = List.append (List.map2 (fun x y -> (x,y)) args liste_exprs) g in 
-=======
                                 | InFR(id, InF(expr, args, g))-> let newG = List.append (List.map2 (fun x y -> (x,y)) args liste_exprs) g in eval_expr  (( id ,InFR(id, InF(expr, args, g)))::newG) expr
->>>>>>> 5519d53ba1aa2d2c475d6e3652e1d01a9aae3433
                                 | _ -> failwith "cannot be apply")
 and eval_exprs exprs env acc =
   match exprs with 
@@ -118,4 +114,3 @@ let fname = Sys.argv.(1) in
       print_char '\n'
     with Lexer.Eof ->
     exit 0
-  

@@ -10,6 +10,7 @@ open Ast
 %token PLUS MINUS TIMES DIV AND OR EQ LT NOT
 %token LPAR RPAR LCRO RCRO
 %token PNTV DPNT VIRG ETOILE FLECHE
+%token VAR PROC SET IFPROG WHILE CALL VOID
 
 %type <Ast.expr> expr
 %type <Ast.expr list> exprs
@@ -37,19 +38,27 @@ cmds:
 ;
 
 stat:
-	ECHO expr          { AstEcho($2) }
+	ECHO expr                 { AstEcho($2) }
+	| SET IDENT expr          { AstSet(AstId($2), $3) }
+	| IFPROG expr prog prog   { AstIF($2, $3, $4) }
+	| WHILE expr prog         { AstWhile($2, $3) }
+	| CALL IDENT exprs        { AstCall(AstId($2), $3) }
 ;
 
 dec:
 		CONST IDENT type_ expr                      { AstConst(AstId($2), $3, $4) }
 		| FUN IDENT type_ LCRO args RCRO expr       { AstFun(AstId($2), $3, $5, $7) }
 		| FUN REC IDENT type_ LCRO args RCRO expr   { AstFunRec(AstId($3), $4, $6, $8) }
+		| VAR IDENT type_                           { AstVar(AstId($2), $3) }
+		| PROC IDENT LCRO args RCRO prog            { AstProc(AstId($2), $4, $6) }
+		| PROC REC IDENT LCRO args RCRO prog        { AstProcRec(AstId($3), $5, $7) }
 ;
 
 type_:
-	INT   { AstTypeInt }
-	| BOOL  { AstTypeBool }
+	INT                             { AstTypeInt }
+	| BOOL                          { AstTypeBool }
 	| LPAR types FLECHE type_ RPAR  { AstTypeFun($2, $4) }
+	| VOID                          { AstVoid }
 ;
 
 types:

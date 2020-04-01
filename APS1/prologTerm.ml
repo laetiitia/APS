@@ -61,6 +61,7 @@ let rec print_expr e =
         print_type t;
         Printf.printf")";
       )
+    | AstVoid ->  Printf.printf "void"
   and print_types ts =
     match ts with
       AstType t -> print_type t;
@@ -91,6 +92,36 @@ let rec print_expr e =
         AstEcho e -> (
           Printf.printf "echo(";
           print_expr e; 
+          Printf.printf ")"
+        )
+        | AstSet (id, e)-> (
+          Printf.printf "set(";
+          print_expr id; 
+          Printf.printf ",";
+          print_expr e;
+          Printf.printf ")"
+        )
+        | AstIF (cond, prog1, prog2)-> (
+          Printf.printf "ifprog(";
+          print_expr cond; 
+          Printf.printf ",";
+          print_prog prog1;
+          Printf.printf ",";
+          print_prog prog2;
+          Printf.printf ")"
+        )
+        | AstWhile (cond, block) -> (
+          Printf.printf "while(";
+          print_expr cond; 
+          Printf.printf ",";
+          print_prog block;
+          Printf.printf ")"
+        )
+        | AstCall (id, exprs) -> (
+          Printf.printf "call(";
+          print_expr id; 
+          Printf.printf ",";
+          print_exprs exprs;
           Printf.printf ")"
         )
     and print_dec dec =
@@ -126,6 +157,31 @@ let rec print_expr e =
           print_expr e;
           Printf.printf ")"
         ) 
+        | AstVar (id, t) -> (
+          Printf.printf "vardec(";
+          print_expr id; 
+          Printf.printf ",";
+          print_type t;
+          Printf.printf ")"
+        )
+        | AstProc (id, args, block) ->(
+          Printf.printf "proc(";
+          print_expr id; 
+          Printf.printf ",";
+          print_args args;
+          Printf.printf ",";
+          print_prog block;
+          Printf.printf ")"
+        )
+        | AstProcRec (id, args, block) ->(
+          Printf.printf "procrec(";
+          print_expr id; 
+          Printf.printf ",";
+          print_args args;
+          Printf.printf ",";
+          print_prog block;
+          Printf.printf ")"
+        )
     and print_cmds cmd =
       match cmd with
         AstStat (s) -> (
@@ -152,7 +208,7 @@ let rec print_expr e =
         AstProg (c) -> (
            Printf.printf "prog([" ;
            print_cmds c;
-           Printf.printf "]).";
+           Printf.printf "])";
         )
 ;;
 
@@ -161,7 +217,8 @@ let ic = open_in fname in
 	try
    let lexbuf = Lexing.from_channel ic in
    let p = Parser.prog Lexer.token lexbuf in
-	   print_prog p;
+     print_prog p;
+     print_char '.';
 	   print_char '\n'
   with Lexer.Eof ->
 	exit 0

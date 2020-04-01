@@ -28,6 +28,13 @@ type token =
   | VIRG
   | ETOILE
   | FLECHE
+  | VAR
+  | PROC
+  | SET
+  | IFPROG
+  | WHILE
+  | CALL
+  | VOID
 
 val prog :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.prog

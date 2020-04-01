@@ -6,6 +6,7 @@ type type_ =
     AstTypeInt
   | AstTypeBool
   | AstTypeFun of types * type_ (* correspond à (TYPES -> TYPE) *)
+  | AstVoid
 
 and types =
     AstType of type_
@@ -17,7 +18,7 @@ type prog =
 and cmds =
     AstStat of stat
   | AstDec of dec * cmds
-  | AstStats of stat *cmds
+  | AstStats of stat * cmds
 
 and arg = (expr * type_)
 
@@ -29,9 +30,16 @@ and dec =
     AstConst of expr * type_ * expr
   | AstFun of expr * type_ * args * expr
   | AstFunRec of expr * type_ * args * expr
+  | AstVar of expr * type_
+  | AstProc of expr * args * prog
+  | AstProcRec of expr * args * prog 
 
 and stat =
-  AstEcho of expr
+    AstEcho of expr
+  | AstSet of expr * expr
+  | AstIF of expr * prog * prog
+  | AstWhile of expr * prog
+  | AstCall of expr * expr list
 
 and expr =
     AstNum of int

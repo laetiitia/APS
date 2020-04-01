@@ -23,6 +23,13 @@ rule token = parse
 | "lt"		  { LT }
 | "not"     { NOT }
 | "if"      { IF }
+| "VAR"     { VAR }
+| "PROC"    { PROC }
+| "SET"     { SET }
+| "IF"      { IFPROG }
+| "WHILE"   { WHILE }
+| "CALL"    { CALL }
+| "void"    { VOID }
 | '('              { LPAR }
 | ')'              { RPAR }
 | '['              { LCRO }
