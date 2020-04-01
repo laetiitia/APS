@@ -6,7 +6,7 @@ main_stdin :-
     exitCode(R).
 
 /* CHECK*/
-typeCheck(P,ok) :- typeProg(P).
+typeCheck(P,ok) :- typeProg([], P, void).
 typeCheck(_,ko).
 
 
@@ -15,8 +15,7 @@ exitCode(ok) :- halt(0).
 exitCode(_) :- halt(1).
 
 /* PROG */
-typeProg(prog(X)):- typeCmds([],X,void).
-typeProg(G, prog(X)):- typeCmds(G,X,void).
+typeProg(G, prog(X), void):- typeCmds(G,X,void).
 
 
 /* CMDS */
@@ -28,8 +27,8 @@ typeCmds(G,[dec(H)|CMDS],void):- typeDec(G,H,GG),typeCmds(GG,CMDS,void).
 /* STAT */
 typeStat(G, echo(E),void):- typeExpr(G,E,int). /* /!\ RETURN INT */
 typeStat(G, set(X,E),void) :- sym((X,T),G) , typeExpr(G,E,T).
-typeStat(G, ifprog(COND, P1, P2), void) :- typeExpr(G, COND, bool), typeProg(G, P1), typeProg(G, P2).
-typeStat(G, while(COND, BLOCK), void) :- typeExpr(G, COND, bool), typeProg(G, BLOCK).
+typeStat(G, ifprog(COND, P1, P2), void) :- typeExpr(G, COND, bool), typeProg(G, P1,void), typeProg(G, P2,void).
+typeStat(G, while(COND, BLOCK), void) :- typeExpr(G, COND, bool), typeProg(G, BLOCK,void).
 typeStat(G, call(X,[E|ES]), void) :- sym((X,TS),G), typeExpr(G, apply(E,ES),TS).
 
 /* DEC */
@@ -41,8 +40,8 @@ typeDec(G,funrec(X,T,A,E),[(X,typefun(TS,T))|G]):-
     getTypes(A,TS), append(G,A,NEWG1), append(NEWG1,[(X,typefun(TS,T))],NEWG2), typeExpr(NEWG2,E,T).
 
 typeDec(G, vardec(X, T), GG) :- append(G, [(X,T)], GG).
-typeDec(G, proc(X, A, P),[(X,typefun(TS,void)) |G]) :- getTypes(A,TS), append(G,A,G2),  typeProg(G2, P).
-typeDec(G, procrec(X, A, P), NEWG) :- append(G, [(X,typefun(TS,void))], NEWG), getTypes(A,TS), append(NEWG,A,G2), typeProg(G2,P).
+typeDec(G, proc(X, A, P),[(X,typefun(TS,void)) |G]) :- append(G,A,G2),  typeProg(G2, P,void), getTypes(A,TS).
+typeDec(G, procrec(X, A, P), NEWG) :- append(G, [(X,typefun(TS,void))], NEWG), getTypes(A,TS), append(NEWG,A,G2), typeProg(G2,P,void).
 
 /* Verify type of args*/
 getTypes([(_,T)],[T]).
@@ -71,11 +70,6 @@ typeExpr(G, apply(E, ES),T) :- typeExpr(G, E, typefun(TS,T)), checkExprs(G, ES,T
 /* EXPR SUITE */
 typeExpr(G, if(COND,BODY,ALT),T) :- typeExpr(G, COND, bool), typeExpr(G, BODY, T), typeExpr(G, ALT, T).
 
-
-/* Environnement: ident -> type */
-%% Append
-append([], X, X).
-append([A|X], Y, [A|R]) :- append(X, Y, R).
 
 %% Check Environment
 sym((X,T),[(X,T)|_]). %%Trouvé
