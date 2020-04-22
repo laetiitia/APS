@@ -120,9 +120,9 @@ let rec print_expr e =
         | AstCall (id, exprs) -> (
           Printf.printf "call(";
           print_expr id; 
-          Printf.printf ",";
+          Printf.printf ",[";
           print_exprs exprs;
-          Printf.printf ")"
+          Printf.printf "])"
         )
     and print_dec dec =
       match dec with 
@@ -167,18 +167,18 @@ let rec print_expr e =
         | AstProc (id, args, block) ->(
           Printf.printf "proc(";
           print_expr id; 
-          Printf.printf ",";
+          Printf.printf ",[";
           print_args args;
-          Printf.printf ",";
+          Printf.printf "],";
           print_prog block;
           Printf.printf ")"
         )
         | AstProcRec (id, args, block) ->(
           Printf.printf "procrec(";
           print_expr id; 
-          Printf.printf ",";
+          Printf.printf ",[";
           print_args args;
-          Printf.printf ",";
+          Printf.printf "],";
           print_prog block;
           Printf.printf ")"
         )

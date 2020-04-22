@@ -29,7 +29,7 @@ typeStat(G, echo(E),void):- typeExpr(G,E,int). /* /!\ RETURN INT */
 typeStat(G, set(X,E),void) :- sym((X,T),G) , typeExpr(G,E,T).
 typeStat(G, ifprog(COND, P1, P2), void) :- typeExpr(G, COND, bool), typeProg(G, P1,void), typeProg(G, P2,void).
 typeStat(G, while(COND, BLOCK), void) :- typeExpr(G, COND, bool), typeProg(G, BLOCK,void).
-typeStat(G, call(X,[E|ES]), void) :- sym((X,TS),G), typeExpr(G, apply(E,ES),TS).
+typeStat(G, call(X,ES), void) :- sym((X,typefun(TS,void)), G), checkExprs(G,ES,TS).
 
 /* DEC */
 typeDec(G,const(X,T,E),[(X,T)|G]):- typeExpr(G,E,T).
@@ -40,8 +40,8 @@ typeDec(G,funrec(X,T,A,E),[(X,typefun(TS,T))|G]):-
     getTypes(A,TS), append(G,A,NEWG1), append(NEWG1,[(X,typefun(TS,T))],NEWG2), typeExpr(NEWG2,E,T).
 
 typeDec(G, vardec(X, T), GG) :- append(G, [(X,T)], GG).
-typeDec(G, proc(X, A, P),[(X,typefun(TS,void)) |G]) :- append(G,A,G2),  typeProg(G2, P,void), getTypes(A,TS).
-typeDec(G, procrec(X, A, P), NEWG) :- append(G, [(X,typefun(TS,void))], NEWG), getTypes(A,TS), append(NEWG,A,G2), typeProg(G2,P,void).
+typeDec(G, proc(X, A, P), GG) :-  append(G,A,G2), getTypes(A,TS),  typeProg(G2, P, void), GG=[(X,typefun(TS,void))|G]. % append(G, [(X,typefun(TS,void))], GG)
+typeDec(G, procrec(X, A, P), GG) :- append(GG,A,G2), typeProg(G2,P,void), getTypes(A,TS),append(G, [(X,typefun(TS,void))], GG).
 
 /* Verify type of args*/
 getTypes([(_,T)],[T]).
@@ -69,6 +69,7 @@ typeExpr(G, abst(A, E), typefun(TS,T)) :- getTypes(A,TS), append(G,A,GG), typeEx
 typeExpr(G, apply(E, ES),T) :- typeExpr(G, E, typefun(TS,T)), checkExprs(G, ES,TS).
 /* EXPR SUITE */
 typeExpr(G, if(COND,BODY,ALT),T) :- typeExpr(G, COND, bool), typeExpr(G, BODY, T), typeExpr(G, ALT, T).
+
 
 
 %% Check Environment
