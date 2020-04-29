@@ -11,7 +11,7 @@ type valeurs =
 
 (* FONCTIONS APS1 *)
 let adress = ref 0
-let alloc mem = let mem' = (!adress, ( (!adress, ref (InA(-1))) ::mem) ) in 
+let alloc mem = let mem' = (!adress, ( (!adress, ref (InN(-1))) ::mem) ) in 
                     adress := (!adress +1); 
                     mem'
 
@@ -33,20 +33,20 @@ let get_string ast =
 
 let eval_oprim op e1 e2 =
   match op with
-   "add" -> InN((eval_int e1) + (eval_int e2))
-  | "mul" -> InN((eval_int e1) * (eval_int e2))
-	| "sub" -> InN((eval_int e1) - (eval_int e2))
-	| "div" -> if ((eval_int e2) == 0) then failwith "can't divide with 0" else InN((eval_int e1)/(eval_int e2))
-	| "and" -> if ((eval_int e1) == 0) then InN(0) else e2 
-	| "or" -> if ((eval_int e1) == 1) then InN(1) else e2
-	| "eq" -> if ((eval_int e1) == (eval_int e2)) then InN(1) else InN(0)
-  | "lt" -> if ((eval_int e1) < (eval_int e2)) then InN(1) else InN(0)
+   "add" -> InN((eval_int e1 ) + (eval_int e2 ))
+  | "mul" -> InN((eval_int e1 ) * (eval_int e2 ))
+	| "sub" -> InN((eval_int e1 ) - (eval_int e2 ))
+	| "div" -> if ((eval_int e2 ) == 0) then failwith "can't divide with 0" else InN((eval_int e1 )/(eval_int e2 ))
+	| "and" -> if ((eval_int e1 ) == 0) then InN(0) else e2 
+	| "or" -> if ((eval_int e1 ) == 1) then InN(1) else e2
+	| "eq" -> if ((eval_int e1 ) == (eval_int e2 )) then InN(1) else InN(0)
+  | "lt" -> if ((eval_int e1 ) < (eval_int e2 )) then InN(1) else InN(0)
   | _ -> failwith "not an oprim"
 ;;
 
 let eval_opUnary op e =
   match op with
-  | "not" -> if ((eval_int e) == 0) then InN(1) else InN(0)
+  | "not" -> if ((eval_int e ) == 0) then InN(1) else InN(0)
   | _ -> failwith "not an opUnary"
 ;;
 
@@ -62,10 +62,12 @@ let rec eval_expr env mem e =
   | AstNum(x) -> InN(x)
   | AstTrue -> InN(1)
   | AstFalse -> InN(0)
-  | AstId(id) -> List.assoc id env 
+  | AstId(id) ->( match (List.assoc id env ) with
+                  | InA(x) -> !(List.assoc x mem)
+                  | x -> x ) 
   | AstPrim(op, l) -> eval_oprim (string_of_oprim op) (eval_expr env mem (List.hd l)) (eval_expr env mem (List.nth l 1))
   | AstUnary(op, e) -> eval_opUnary (string_of_opUnary op) (eval_expr env mem e)
-  | AstIf(cond, body, alt) -> if (eval_int (eval_expr env mem cond)) == 1 
+  | AstIf(cond, body, alt) -> if (eval_int (eval_expr env mem cond) ) == 1 
                               then (eval_expr env mem body) 
                               else (eval_expr env mem alt)
   | AstAbstraction(args, e) -> InF(e, (eval_args args), env)
@@ -84,7 +86,7 @@ and eval_exprs exprs env mem acc =
 (* Return couple memoire et flux de retour*)
 let rec eval_stat env mem out stat =
   match stat with
-  | AstEcho(e) -> let result = (eval_int (eval_expr env mem e)) in 
+  | AstEcho(e) -> let result = (eval_int (eval_expr env mem e) ) in 
                     out:=!out ^ (string_of_int result) ^ "\n";
                     (mem, out)
 
@@ -93,23 +95,23 @@ let rec eval_stat env mem out stat =
                         InA(a) -> let x = (List.assoc a mem) and 
                                       res = eval_expr env mem e in
                                         x := res;
-                                        (mem, out))
-                        |_ -> failwith "Error AstSet : wrong id"
+                                        (mem, out)
+                        |_ -> failwith "Error AstSet : wrong id")
 
   | AstIF(cond, body, alt) -> if (eval_int (eval_expr env mem cond)) == 1 
-                              then let (mem', out') = (eval_prog body) in
-                                      out:= !out ^ !out';
-                                      (mem', out)
-                              else let (mem', out') = (eval_prog alt) in
-                                      out:= !out ^ !out';
-                                      (mem', out)
+                              then (eval_prog body env mem)
+                              else (eval_prog alt env mem)
 
   | AstWhile(cond, prog) -> if (eval_int (eval_expr env mem cond)) == 1 
-                            then let (mem', out')= (eval_prog prog) in
+                            then let (mem', out')= (eval_prog prog env mem) in
                                     eval_stat env mem' out' stat
                             else (mem, out)
-  | AstCall(expr, exprs) -> (mem, out)
-
+  | AstCall(expr, exprs) -> let eval_e = (eval_expr env mem expr) 
+                              and liste_exprs = eval_exprs exprs env mem [] in 
+                                  (match eval_e with 
+                                    | InP(prog, args, env1) -> let newG = List.append (List.map2 (fun x y -> (x,y)) args liste_exprs) env1 in eval_prog prog newG mem
+                                    | InPR(id, InP(prog, args, env1))-> let newG = List.append (List.map2 (fun x y -> (x,y)) args liste_exprs) env1 in eval_prog prog (( id ,InPR(id, InP(prog, args, env1)))::newG) mem
+                                    | _ -> failwith "cannot be apply")
 (* Return couple environnement et memoire *)
 and eval_dec env mem dec =
   match dec with
@@ -132,9 +134,9 @@ and eval_cmds env mem out cmd =
                               eval_cmds env mem' out' cmd 
 
 (* Return couple memoire et flux de retour*)
-and eval_prog p =
+and eval_prog p env mem =
   match p with
-  | AstProg(prog) -> let out = ref "Sortie: \n" and env = [] and mem = [] in
+  | AstProg(prog) -> let out = ref "Sortie: \n" in
                         eval_cmds env mem out prog 
 ;;
 
@@ -146,7 +148,7 @@ let fname = Sys.argv.(1) in
     try
     let lexbuf = Lexing.from_channel ic in
     let p = Parser.prog Lexer.token lexbuf in
-    let (memory, out) = eval_prog p in 
+    let (memory, out) = eval_prog p [] [] in 
        Printf.printf "%s" !out
     with Lexer.Eof ->
     exit 0
